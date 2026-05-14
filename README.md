@@ -11,3 +11,7 @@ A @TimerTrigger anotação na função define o uso do schedule mesmo formato de
 # | hour (0–23)
 # minute (0–59)
 ```
+
+## Execução
+  A execução da função está configurada com o padrão de cron `0 0 0 * * 6`, que define a execução da função todos os sábados às 00:00:00.
+
