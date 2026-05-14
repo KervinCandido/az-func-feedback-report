@@ -19,7 +19,8 @@ public class GenerateReportFunction {
     private final GenerateAndStoreWeeklyFeedbackReportUseCase generateAndStoreWeeklyFeedbackReportUseCase;
 
     @Inject
-    public GenerateReportFunction(GenerateAndStoreWeeklyFeedbackReportUseCase generateAndStoreWeeklyFeedbackReportUseCase) {
+    public GenerateReportFunction(
+            GenerateAndStoreWeeklyFeedbackReportUseCase generateAndStoreWeeklyFeedbackReportUseCase) {
         this.generateAndStoreWeeklyFeedbackReportUseCase = generateAndStoreWeeklyFeedbackReportUseCase;
     }
 
@@ -34,6 +35,6 @@ public class GenerateReportFunction {
 
         LOG.info("Gerando e armazenando relatório semanal de {} até {}", inicio, fim);
 
-        var result = generateAndStoreWeeklyFeedbackReportUseCase.execute(inicio, fim);
+        generateAndStoreWeeklyFeedbackReportUseCase.execute(inicio, fim);
     }
 }
