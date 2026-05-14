@@ -16,7 +16,6 @@
         <quarkus.platform.version>3.35.3</quarkus.platform.version>
         <skipITs>true</skipITs>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
-        <functionAppName>func-feedback-report</functionAppName>
     </properties>
 
     <dependencyManagement>
