@@ -8,13 +8,11 @@ import br.com.fiap.techchallenge.report.application.ports.WeeklyFeedbackReportSe
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class GenerateAndStoreWeeklyFeedbackReportUseCase {
 
-    private static final DateTimeFormatter FILE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")
-            .withZone(ZoneId.of("America/Sao_Paulo"));
+    private static final ZoneId ZONE_ID_SP = ZoneId.of("America/Sao_Paulo");
 
     private final GenerateWeeklyFeedbackReportUseCase generateWeeklyFeedbackReportUseCase;
     private final WeeklyFeedbackReportSerializerPort serializer;
@@ -24,7 +22,9 @@ public class GenerateAndStoreWeeklyFeedbackReportUseCase {
             GenerateWeeklyFeedbackReportUseCase generateWeeklyFeedbackReportUseCase,
             WeeklyFeedbackReportSerializerPort serializer,
             ReportStoragePort storage) {
-        this.generateWeeklyFeedbackReportUseCase = Objects.requireNonNull(generateWeeklyFeedbackReportUseCase,"generateWeeklyFeedbackReportUseCase é obrigatório");
+        this.generateWeeklyFeedbackReportUseCase = Objects.requireNonNull(
+                generateWeeklyFeedbackReportUseCase,
+                "generateWeeklyFeedbackReportUseCase é obrigatório");
         this.serializer = Objects.requireNonNull(serializer, "serializer é obrigatório");
         this.storage = Objects.requireNonNull(storage, "storage é obrigatório");
     }
@@ -44,10 +44,17 @@ public class GenerateAndStoreWeeklyFeedbackReportUseCase {
     }
 
     private String buildBlobName(OffsetDateTime inicio, OffsetDateTime fim) {
-        String inicioFormatado = FILE_DATE_FORMATTER.format(inicio.toInstant());
-        String fimFormatado = FILE_DATE_FORMATTER.format(fim.toInstant());
+        String inicioFormatado = inicio
+                .atZoneSameInstant(ZONE_ID_SP)
+                .toLocalDate()
+                .toString();
 
-        return "reports/weekly/relatorio-semanal-feedbacks-%s-%s.json"
+        String fimFormatado = fim
+                .atZoneSameInstant(ZONE_ID_SP)
+                .toLocalDate()
+                .toString();
+
+        return "reports/weekly/relatorio-semanal-feedbacks-%s_%s.json"
                 .formatted(inicioFormatado, fimFormatado);
     }
 }
