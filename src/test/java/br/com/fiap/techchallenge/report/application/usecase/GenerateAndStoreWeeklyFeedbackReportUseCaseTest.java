@@ -10,19 +10,23 @@ import br.com.fiap.techchallenge.report.domain.enums.Urgencia;
 import br.com.fiap.techchallenge.report.domain.model.Feedback;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class GenerateAndStoreWeeklyFeedbackReportUseCaseTest {
 
+    private static final ZoneId ZONE_ID_SP = ZoneId.of("America/Sao_Paulo");
+
     @Test
     void deveGerarSerializarEArmazenarRelatorioSemanal() {
-        OffsetDateTime inicio = OffsetDateTime.of(2026, 5, 1, 0, 0, 0, 0, ZoneOffset.UTC);
-        OffsetDateTime fim = OffsetDateTime.of(2026, 5, 8, 0, 0, 0, 0, ZoneOffset.UTC);
+        OffsetDateTime inicio = inicioDoDiaEmSaoPaulo(2026, 5, 1);
+        OffsetDateTime fim = inicioDoDiaEmSaoPaulo(2026, 5, 8);
 
         FakeFeedbackRepository repository = new FakeFeedbackRepository(List.of(
                 new Feedback(
@@ -30,28 +34,46 @@ class GenerateAndStoreWeeklyFeedbackReportUseCaseTest {
                         "Aula excelente",
                         10,
                         Urgencia.BAIXA,
-                        OffsetDateTime.of(2026, 5, 2, 10, 0, 0, 0, ZoneOffset.UTC))));
+                        dataHoraEmSaoPaulo(2026, 5, 2, 10, 0)
+                )
+        ));
 
         GenerateWeeklyFeedbackReportUseCase generateUseCase = new GenerateWeeklyFeedbackReportUseCase(repository);
-
         FakeSerializer serializer = new FakeSerializer();
-
         FakeStorage storage = new FakeStorage();
 
         GenerateAndStoreWeeklyFeedbackReportUseCase useCase = new GenerateAndStoreWeeklyFeedbackReportUseCase(
                 generateUseCase,
                 serializer,
-                storage);
+                storage
+        );
 
         StoredWeeklyFeedbackReportResult result = useCase.execute(inicio, fim);
 
         assertNotNull(result);
         assertEquals(1, result.report().totalAvaliacoes());
-        assertTrue(result.storage().blobName().startsWith("reports/weekly/relatorio-semanal-feedbacks-"));
-        assertTrue(result.storage().blobName().endsWith(".json"));
+        assertEquals(
+                "reports/weekly/relatorio-semanal-feedbacks-2026-05-01_2026-05-08.json",
+                result.storage().blobName()
+        );
         assertEquals("application/json", storage.contentTypeSalvo);
         assertEquals("{\"mock\":true}", storage.conteudoSalvo);
         assertEquals(result.storage().blobName(), storage.blobNameSalvo);
+    }
+
+    private static OffsetDateTime inicioDoDiaEmSaoPaulo(int ano, int mes, int dia) {
+        return LocalDate
+                .of(ano, mes, dia)
+                .atStartOfDay(ZONE_ID_SP)
+                .toOffsetDateTime();
+    }
+
+    private static OffsetDateTime dataHoraEmSaoPaulo(int ano, int mes, int dia, int hora, int minuto) {
+        return LocalDate
+                .of(ano, mes, dia)
+                .atTime(hora, minuto)
+                .atZone(ZONE_ID_SP)
+                .toOffsetDateTime();
     }
 
     private static class FakeSerializer implements WeeklyFeedbackReportSerializerPort {
@@ -77,7 +99,8 @@ class GenerateAndStoreWeeklyFeedbackReportUseCaseTest {
             return new StoredReportResult(
                     blobName,
                     "http://localhost:10000/devstoreaccount1/feedback-reports/" + blobName,
-                    OffsetDateTime.now());
+                    OffsetDateTime.now(ZONE_ID_SP)
+            );
         }
     }
 
